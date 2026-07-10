@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>AeroTravel - Premium Tourism App</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            /* Светлая тема (Blue & White Theme) */
+            --bg-base: #F4F7FB; 
+            --surface-glass: rgba(255, 255, 255, 0.75);
+            --surface-solid: #FFFFFF;
+            
+            --primary: #007AFF; /* Классический Apple Blue */
+            --primary-dark: #0052D4;
+            --primary-light: #E5F0FF;
+            --primary-gradient: linear-gradient(135deg, #0052D4 0%, #4364F7 50%, #6FB1FC 100%);
+            
+            --accent-cyan: #34E89E;
+            --text-main: #0B192C; 
+            --text-secondary: #718096;
+            
+            --border-glass: rgba(255, 255, 255, 0.8);
+            --border-line: rgba(0, 122, 255, 0.1);
+            
+            --shadow-glass: 0 10px 40px rgba(0, 82, 212, 0.08);
+            --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.04);
+            
+            --radius-lg: 32px;
+            --radius-md: 24px;
+            --radius-sm: 16px;
+            
+            /* Apple iOS Spring Анимация */
+            --spring: cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
+        /* Темная тема (Dark Mode) - Океанская глубина */
+        body.dark-theme {
+            --bg-base: #020813;
+            --surface-glass: rgba(10, 25, 47, 0.65);
+            --surface-solid: #0A192F;
+            
+            --primary: #3399FF;
+            --primary-light: rgba(51, 153, 255, 0.15);
+            
+            --text-main: #F4F7FB;
+            --text-secondary: #A0AEC0;
+            
+            --border-glass: rgba(51, 153, 255, 0.15);
+            --border-line: rgba(255, 255, 255, 0.05);
+            
+            --shadow-glass: 0 10px 40px rgba(0, 0, 0, 0.5);
+            --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+            transition: background-color 0.5s ease;
+        }
+
+        /* Фоновые элементы (Ambient Glassmorphism) */
+        .ambient-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 0;
+            opacity: 0.5;
+            pointer-events: none;
+            transition: all 1s ease;
+        }
+        .blob-1 { top: -10%; left: -20%; width: 500px; height: 500px; background: #6FB1FC; }
+        .blob-2 { bottom: -10%; right: -20%; width: 450px; height: 450px; background: #0052D4; opacity: 0.3; }
+        
+        body.dark-theme .blob-1 { background: #0052D4; opacity: 0.3; }
+        body.dark-theme .blob-2 { background: #002255; opacity: 0.5; }
+
+        /* Контейнер приложения */
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Экраны */
+        .screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            padding: calc(env(safe-area-inset-top) + 20px) 20px calc(env(safe-area-inset-bottom) + 110px) 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.96) translateY(20px);
+            transition: all 0.5s var(--spring);
+        }
+        .screen.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+        }
+        .screen::-webkit-scrollbar { display: none; }
+
+        /* Типографика */
+        h1.large-title { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 20px; line-height: 1.1; }
+        h2 { font-size: 22px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px; }
+        p { font-size: 15px; color: var(--text-secondary); line-height: 1.5; }
+
+        /* Стеклянные панели */
+        .glass-panel {
+            background: var(--surface-glass);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: var(--shadow-glass);
+            transition: transform 0.2s var(--spring);
+        }
+        .clickable { cursor: pointer; }
+        .clickable:active { transform: scale(0.96); }
+
+        /* Система поиска */
+        .search-bar {
+            background: var(--surface-solid);
+            padding: 16px 20px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 24px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border: 1px solid var(--border-line);
+        }
+        .search-bar input {
+            border: none; background: transparent; width: 100%;
+            font-size: 16px; color: var(--text-main); outline: none; font-weight: 500;
+        }
+        .search-bar input::placeholder { color: var(--text-secondary); }
+
+        /* Категории (горизонтальный скролл) */
+        .categories-wrapper { margin-bottom: 25px; }
+        .categories-scroll {
+            display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px;
+            scroll-snap-type: x mandatory;
+        }
+        .categories-scroll::-webkit-scrollbar { display: none; }
+        
+        .cat-item {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            min-width: 80px; scroll-snap-align: start; cursor: pointer;
+        }
+        .cat-icon {
+            width: 60px; height: 60px; border-radius: 20px;
+            background: var(--surface-solid);
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-line);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 26px; transition: 0.3s var(--spring);
+        }
+        .cat-item.active .cat-icon {
+            background: var(--primary-gradient); color: white;
+            box-shadow: 0 10px 20px rgba(0, 122, 255, 0.3);
+            transform: translateY(-5px);
+        }
+        .cat-item.active .cat-icon span { filter: brightness(0) invert(1); } 
+        .cat-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-align: center;}
+        .cat-item.active .cat-label { color: var(--primary); }
+
+        /* Умные виджеты (Погода) */
+        .smart-widget { display: flex; gap: 16px; margin-bottom: 24px; }
+        .widget-box {
+            flex: 1; background: var(--surface-glass);
+            backdrop-filter: blur(20px); border: 1px solid var(--border-glass);
+            border-radius: 20px; padding: 16px; box-shadow: var(--shadow-glass);
+            display: flex; align-items: center; gap: 12px;
+        }
+
+        /* Главный баннер */
+        .hero-banner {
+            background: var(--primary-gradient);
+            color: #fff; padding: 28px; border-radius: var(--radius-lg);
+            margin-bottom: 30px; position: relative; overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 122, 255, 0.3);
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .hero-banner::after {
+            content: '✈️'; position: absolute; right: -10px; bottom: -20px; font-size: 120px; opacity: 0.15;
+            transform: rotate(-15deg);
+        }
+        .btn-glass {
+            background: rgba(255,255,255,0.25); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.3); color: #fff;
+            padding: 12px 24px; border-radius: 20px; font-weight: 600;
+            display: inline-block; cursor: pointer; align-self: flex-start;
+            transition: 0.2s;
+        }
+        .btn-glass:active { transform: scale(0.95); background: rgba(255,255,255,0.35);}
+
+        /* Сетка локаций */
+        .destination-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 30px; }
+        .dest-card {
+            background: var(--surface-solid); border-radius: var(--radius-md);
+            padding: 12px; box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-line);
+        }
+        .dest-img {
+            width: 100%; height: 160px; border-radius: 16px;
+            background-color: var(--primary-light); margin-bottom: 12px; position: relative;
+            background-size: cover; background-position: center;
+        }
+        .badge {
+            position: absolute; top: 10px; left: 10px;
+            background: rgba(255,255,255,0.85); backdrop-filter: blur(10px);
+            color: var(--text-main); font-size: 11px; padding: 6px 12px;
+            border-radius: 12px; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .badge-ar {
+            position: absolute; bottom: 10px; right: 10px;
+            background: var(--primary-gradient); color: white;
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 14px; box-shadow: 0 4px 10px rgba(0,122,255,0.3);
+        }
+
+        /* Чат ИИ */
+        .chat-container { display: flex; flex-direction: column; gap: 16px; padding-bottom: 120px; }
+        .chat-bubble {
+            max-width: 85%; padding: 16px; border-radius: 24px; font-size: 15px; line-height: 1.5; 
+            box-shadow: var(--shadow-card); animation: fadeIn 0.4s var(--spring);
+        }
+        .chat-ai { background: var(--surface-solid); border-bottom-left-radius: 8px; align-self: flex-start; border: 1px solid var(--border-line);}
+        .chat-user { background: var(--primary-gradient); color: #fff; border-bottom-right-radius: 8px; align-self: flex-end;}
+        
+        /* Поле ввода для чата (Аккуратное, над таб-баром) */
+        .chat-input-wrapper {
+            position: fixed; 
+            bottom: calc(env(safe-area-inset-bottom) + 95px); 
+            left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 460px;
+            padding: 0 20px;
+            z-index: 90;
+        }
+        .chat-input-box {
+            background: var(--surface-glass);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--border-glass);
+            border-radius: 30px;
+            padding: 6px 8px 6px 16px;
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: var(--shadow-glass);
+        }
+        .chat-input-box input {
+            flex: 1; border: none; background: transparent;
+            font-size: 15px; color: var(--text-main); outline: none;
+            padding: 8px 0;
+        }
+        .chat-input-box input::placeholder { color: var(--text-secondary); }
+        .chat-send-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--primary-gradient); color: white;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 18px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);
+            transition: transform 0.2s;
+        }
+        .chat-send-btn:active { transform: scale(0.9); }
+
+        /* Профиль и Настройки */
+        .list-group {
+            background: var(--surface-solid); border-radius: var(--radius-md);
+            overflow: hidden; margin-bottom: 24px; box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-line);
+        }
+        .list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 20px; border-bottom: 1px solid var(--border-line);
+            font-size: 16px; font-weight: 500; cursor: pointer;
+        }
+        .list-item:active { background: var(--primary-light); }
+        .list-item:last-child { border-bottom: none; }
+        
+        /* Тумблер (Toggle Switch) */
+        .toggle {
+            width: 50px; height: 30px; background: #E9E9EA; border-radius: 15px; position: relative; cursor: pointer; transition: 0.3s;
+        }
+        .toggle::after {
+            content: ''; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px;
+            background: #fff; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.3s var(--spring);
+        }
+        .toggle.active { background: var(--primary); }
+        .toggle.active::after { transform: translateX(20px); }
+        body.dark-theme .toggle:not(.active) { background: #39393D; }
+
+        /* Нижняя навигация (Tab Bar) */
+        .tab-bar {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 500px;
+            height: calc(env(safe-area-inset-bottom) + 85px);
+            background: var(--surface-glass); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            border-top: 1px solid var(--border-glass);
+            display: flex; justify-content: space-around; padding-top: 12px; z-index: 100;
+        }
+        .tab-item {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            color: var(--text-secondary); cursor: pointer; transition: 0.3s var(--spring); width: 65px;
+        }
+        .tab-item.active { color: var(--primary); }
+        .tab-icon { font-size: 24px; transition: 0.3s var(--spring); }
+        .tab-item.active .tab-icon { transform: translateY(-4px) scale(1.15); }
+        .tab-label { font-size: 10px; font-weight: 600; }
+
+        /* Face ID Экран Безопасности */
+        .face-id-overlay {
+            position: fixed; inset: 0; background: var(--bg-base); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        .face-id-icon {
+            font-size: 80px; margin-bottom: 20px; animation: scan 1.5s infinite alternate;
+        }
+        @keyframes scan {
+            0% { transform: scale(0.95); opacity: 0.7; filter: drop-shadow(0 0 10px var(--primary));}
+            100% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 30px var(--primary));}
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Фоновые элементы -->
+<div class="ambient-blob blob-1"></div>
+<div class="ambient-blob blob-2"></div>
+
+<!-- Экран аутентификации Face ID -->
+<div class="face-id-overlay" id="faceId">
+    <div class="face-id-icon">🪪</div>
+    <h2 style="color: var(--text-main);">Face ID</h2>
+    <p>Аутентификация пользователя...</p>
+</div>
+
+<div class="app-container">
+
+    <!-- 1. ГЛАВНЫЙ ЭКРАН (HOME) -->
+    <div id="home" class="screen active">
+        <!-- Шапка -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+                <p style="font-weight: 500; color: var(--text-secondary);">Доброе утро,</p>
+                <h1 style="font-size: 28px; font-weight: 800; color: var(--text-main);">Александр ✈️</h1>
+            </div>
+            <img src="https://ui-avatars.com/api/?name=Alex+Travel&background=007AFF&color=fff&size=100" style="width: 52px; height: 52px; border-radius: 26px; box-shadow: var(--shadow-card); border: 2px solid white;">
+        </div>
+
+        <!-- Виджеты Погоды и Эко -->
+        <div class="smart-widget">
+            <div class="widget-box">
+                <span style="font-size: 28px;">🌤️</span>
+                <div>
+                    <h3 style="font-size: 18px; margin:0;">22°C</h3>
+                    <p style="font-size: 12px; margin:0;">Идеально для тура</p>
+                </div>
+            </div>
+            <div class="widget-box">
+                <span style="font-size: 28px;">🍃</span>
+                <div>
+                    <h3 style="font-size: 18px; margin:0; color: var(--accent-cyan);">98 AQI</h3>
+                    <p style="font-size: 12px; margin:0;">Чистый воздух</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Поиск -->
+        <div class="search-bar">
+            <span style="font-size: 20px; color: var(--primary);">🔍</span>
+            <input type="text" placeholder="Куда отправимся сегодня?">
+        </div>
+
+        <!-- Категории локаций -->
+        <div class="categories-wrapper">
+            <h2 style="font-size: 18px;">Исследуйте мир</h2>
+            <div class="categories-scroll">
+                <div class="cat-item active" onclick="selectCategory(this)">
+                    <div class="cat-icon"><span>🏙️</span></div>
+                    <span class="cat-label">Города</span>
+                </div>
+                <div class="cat-item" onclick="selectCategory(this)">
+                    <div class="cat-icon"><span>🗺️</span></div>
+                    <span class="cat-label">Регионы</span>
+                </div>
+                <div class="cat-item" onclick="selectCategory(this)">
+                    <div class="cat-icon"><span>🏘️</span></div>
+                    <span class="cat-label">Районы</span>
+                </div>
+                <div class="cat-item" onclick="selectCategory(this)">
+                    <div class="cat-icon"><span>🏡</span></div>
+                    <span class="cat-label">Деревни</span>
+                </div>
+                <div class="cat-item" onclick="selectCategory(this)">
+                    <div class="cat-icon"><span>⛪</span></div>
+                    <span class="cat-label">Поселки</span>
+                </div>
+                <div class="cat-item" onclick="selectCategory(this)">
+                    <div class="cat-icon"><span>⛰️</span></div>
+                    <span class="cat-label">Холмы</span>
+                </div>
+                <div class="cat-item" onclick="selectCategory(this)">
+                    <div class="cat-icon"><span>🏔️</span></div>
+                    <span class="cat-label">Горы</span>
+                </div>
+                <div class="cat-item" onclick="selectCategory(this)">
+                    <div class="cat-icon"><span>🌅</span></div>
+                    <span class="cat-label">Пейзажи</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Баннер AI -->
+        <div class="hero-banner clickable" onclick="switchTab('ai', document.getElementById('tab-ai'))">
+            <div class="badge" style="background: rgba(255,255,255,0.25); color: white; left: 24px; top: 24px;">Новое</div>
+            <h3 style="margin-top: 35px;">AI Smart Planner</h3>
+            <p>Ваш личный гид. Мы найдем скрытые деревни и лучшие виды, свободные от толп туристов.</p>
+            <div class="btn-glass">Создать тур</div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2>Популярные направления</h2>
+            <span style="color: var(--primary); font-weight: 600; font-size: 15px; cursor: pointer;">Все</span>
+        </div>
+        
+        <!-- Карточки локаций -->
+        <div class="destination-grid">
+            <div class="dest-card clickable">
+                <div class="dest-img" style="background-image: url('https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=400&q=80');">
+                    <div class="badge">Город</div>
+                    <div class="badge-ar">AR</div>
+                </div>
+                <h3>Тур на Эйфелеву башню</h3>
+                <p>от $120 • ⭐ 4.9</p>
+            </div>
+            <div class="dest-card clickable">
+                <div class="dest-img" style="background-image: url('https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=400&q=80');">
+                    <div class="badge">Горы</div>
+                </div>
+                <h3>Церматт, Альпы</h3>
+                <p>⭐ 5.0 • Эко-зона</p>
+            </div>
+            <div class="dest-card clickable">
+                <div class="dest-img" style="background-image: url('https://images.unsplash.com/photo-1500331882546-3bb2030ab636?auto=format&fit=crop&w=400&q=80');">
+                    <div class="badge">Деревня</div>
+                </div>
+                <h3>Гальштат, Европа</h3>
+                <p>⭐ 4.8 • Тишина</p>
+            </div>
+            <div class="dest-card clickable">
+                <div class="dest-img" style="background-image: url('https://images.unsplash.com/photo-1600521605536-3982e551e18d?auto=format&fit=crop&w=400&q=80');">
+                    <div class="badge">Пейзажи</div>
+                    <div class="badge-ar">3D</div>
+                </div>
+                <h3>Каппадокия</h3>
+                <p>⭐ 4.9 • Воздушные шары</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. ИНТЕРАКТИВНАЯ КАРТА (MAP) -->
+    <div id="map" class="screen">
+        <h1 class="large-title">3D Эко-Карта</h1>
+        
+        <div class="glass-panel" style="height: 400px; padding: 0; overflow: hidden; position: relative; border: none; box-shadow: var(--shadow-card);">
+            <div style="width: 100%; height: 100%; background: url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80') center/cover;"></div>
+            <div style="position: absolute; inset: 0; background: rgba(0, 122, 255, 0.2);"></div>
+            
+            <div style="position: absolute; top: 40%; left: 30%; background: #fff; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); color: var(--primary);">🏡 Эко-деревня</div>
+            <div style="position: absolute; top: 60%; left: 60%; background: #fff; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); color: var(--text-main);">⛰️ Горный маршрут</div>
+
+            <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--surface-glass); backdrop-filter: blur(20px); padding: 12px 24px; border-radius: 24px; font-weight: 600; color: var(--text-main); display: flex; gap: 10px; border: 1px solid var(--border-glass);">
+                <span style="color: var(--primary);">AR</span> Навигация
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. AI АССИСТЕНТ (ЧАТ) -->
+    <div id="ai" class="screen">
+        <h1 class="large-title">AI Ассистент</h1>
+
+        <div class="chat-container" id="chatBox">
+            <div class="chat-bubble chat-ai">
+                Привет! Я ваш AI-ассистент. Я могу спланировать горные маршруты, найти тихие деревни или перевести меню в ресторане. Куда поедем? 🌍
+            </div>
+            <div class="chat-bubble chat-user">
+                Составь маршрут по холмам и деревням Тосканы на 2 дня. Бюджет 500 евро. Исключи шумные туристические места.
+            </div>
+            <div class="chat-bubble chat-ai">
+                <strong>Маршрут готов!</strong> 🇮🇹<br><br>
+                Мы избегаем Флоренцию и едем в аутентичные места:<br><br>
+                • <strong>День 1:</strong> Долина Валь-д'Орча (Холмы и пейзажи). Ночевка в эко-поселке (Агротуризм).<br>
+                • <strong>День 2:</strong> Деревня Монтепульчано. Экскурсия по виноградникам с местным гидом.<br><br>
+                Ваш бюджет в 500€ учтен. Забронировать билеты и жилье?
+                <div style="margin-top: 12px; background: var(--primary-light); padding: 10px; border-radius: 12px; color: var(--primary); font-weight: 600; text-align: center; cursor: pointer;">Забронировать ❯</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Исправленный поле ввода чата -->
+    <div class="chat-input-wrapper">
+        <div class="chat-input-box">
+            <span style="font-size: 20px; color: var(--text-secondary);">🎙️</span>
+            <input type="text" id="chatInput" placeholder="Напишите ваш запрос..." onkeypress="handleChat(event)">
+            <div class="chat-send-btn" onclick="sendMsg()">↑</div>
+        </div>
+    </div>
+
+    <!-- 4. ПРОФИЛЬ И НАСТРОЙКИ -->
+    <div id="profile" class="screen">
+        <div class="profile-head" style="text-align: center; margin-bottom: 30px;">
+            <img class="avatar" src="https://ui-avatars.com/api/?name=Alex+Travel&background=007AFF&color=fff&size=200" style="width: 90px; height: 90px; border-radius: 50%; box-shadow: var(--shadow-card); margin-bottom: 16px;">
+            <h2 style="font-size: 26px; margin-bottom: 4px;">Alex Travel</h2>
+            <p style="color: var(--primary); font-weight: 600;">Premium Explorer 🌟</p>
+        </div>
+
+        <div class="list-group">
+            <div class="list-item">Мои путешествия <span style="color: var(--primary);">2 Активны ❯</span></div>
+            <div class="list-item">Офлайн карты <span>Скачано (1.2 ГБ) ❯</span></div>
+            <div class="list-item">Apple Pay / Wallet <span style="color: var(--text-secondary);">Привязано ❯</span></div>
+        </div>
+
+        <h2 style="font-size: 18px; margin-left: 10px; margin-bottom: 12px;">Настройки системы</h2>
+        <div class="list-group">
+            <div class="list-item">
+                Темная тема
+                <div class="toggle" id="themeToggle" onclick="toggleTheme()"></div>
+            </div>
+            <div class="list-item">
+                Face ID
+                <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+            </div>
+            <div class="list-item">Язык приложения <span style="color: var(--text-secondary);">Русский ❯</span></div>
+        </div>
+    </div>
+
+    <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (Tab Bar) -->
+    <nav class="tab-bar">
+        <div class="tab-item active" onclick="switchTab('home', this)" id="tab-home">
+            <div class="tab-icon">🧭</div>
+            <span class="tab-label">Главная</span>
+        </div>
+        <div class="tab-item" onclick="switchTab('map', this)">
+            <div class="tab-icon">🗺️</div>
+            <span class="tab-label">Карта</span>
+        </div>
+        <div class="tab-item" onclick="switchTab('ai', this)" id="tab-ai">
+            <div class="tab-icon">✨</div>
+            <span class="tab-label">AI Гид</span>
+        </div>
+        <div class="tab-item" onclick="switchTab('profile', this)">
+            <div class="tab-icon">👤</div>
+            <span class="tab-label">Профиль</span>
+        </div>
+    </nav>
+</div>
+
+<script>
+    // Эмуляция проверки Face ID
+    window.onload = () => {
+        setTimeout(() => {
+            document.getElementById('faceId').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('faceId').style.display = 'none';
+                if(navigator.vibrate) navigator.vibrate(20);
+            }, 500);
+        }, 1200);
+    };
+
+    // Плавное переключение экранов
+    function switchTab(screenId, element) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        
+        document.getElementById(screenId).classList.add('active');
+        element.classList.add('active');
+        
+        // Включаем/отключаем строку поиска для AI чата
+        const chatInput = document.querySelector('.chat-input-wrapper');
+        if(screenId === 'ai') {
+            chatInput.style.display = 'block';
+        } else {
+            chatInput.style.display = 'none';
+        }
+
+        if(navigator.vibrate) navigator.vibrate(10);
+    }
+
+    // Скрытие ввода чата при загрузке
+    document.querySelector('.chat-input-wrapper').style.display = 'none';
+
+    // Переключение темной темы (Dark Mode)
+    function toggleTheme() {
+        document.body.classList.toggle('dark-theme');
+        document.getElementById('themeToggle').classList.toggle('active');
+        if(navigator.vibrate) navigator.vibrate(10);
+    }
+
+    // Выбор категории
+    function selectCategory(el) {
+        document.querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        if(navigator.vibrate) navigator.vibrate(10);
+    }
+
+    // Логика работы AI Чата
+    const chatInput = document.getElementById('chatInput');
+    const chatBox = document.getElementById('chatBox');
+    
+    function handleChat(e) {
+        if (e.key === 'Enter') sendMsg();
+    }
+
+    function sendMsg() {
+        const text = chatInput.value.trim();
+        if(!text) return;
+        
+        // Сообщение пользователя
+        const userMsg = document.createElement('div');
+        userMsg.className = 'chat-bubble chat-user';
+        userMsg.textContent = text;
+        chatBox.appendChild(userMsg);
+        chatInput.value = '';
+        
+        // Плавный скролл вниз
+        setTimeout(() => {
+            chatBox.parentElement.scrollTo({ top: chatBox.parentElement.scrollHeight, behavior: 'smooth' });
+        }, 50);
+
+        // Имитация ответа от ИИ
+        setTimeout(() => {
+            const aiMsg = document.createElement('div');
+            aiMsg.className = 'chat-bubble chat-ai';
+            aiMsg.innerHTML = `<strong>Отлично!</strong> AI сканирует лучшие живописные пейзажи и горные деревни. Я подготовлю для вас детализированный план с учетом погоды и локального транспорта. 🏔️`;
+            chatBox.appendChild(aiMsg);
+            
+            setTimeout(() => {
+                chatBox.parentElement.scrollTo({ top: chatBox.parentElement.scrollHeight, behavior: 'smooth' });
+            }, 50);
+            
+            if(navigator.vibrate) navigator.vibrate([10, 30, 10]);
+        }, 1000);
+    }
+</script>
+
+</body>
+</html>
